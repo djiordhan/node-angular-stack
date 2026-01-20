@@ -1,7 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import session from 'express-session';
-import RedisStore from 'connect-redis';
+import { RedisStore } from 'connect-redis';
 import { createClient } from 'redis';
 import passport from 'passport';
 import cors from 'cors';
@@ -52,7 +52,7 @@ app.use(passport.session());
 // Routes
 app.use('/auth', authRoutes);
 
-app.get('/protected', (req, res) => {
+app.get('/protected', (req: express.Request, res: express.Response) => {
   if (req.isAuthenticated()) {
     res.json({ message: 'Welcome to the protected route!', user: req.user });
   } else {

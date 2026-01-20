@@ -13,5 +13,5 @@ export default defineConfig({
       external: [],
     },
   },
-  plugins: [dts()],
+  plugins: [dts({ tsconfigPath: './tsconfig.json' })],
 });

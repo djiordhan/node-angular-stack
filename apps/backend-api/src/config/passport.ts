@@ -5,7 +5,7 @@ import { User } from '../models/User';
 
 export const configurePassport = () => {
   passport.use(
-    new LocalStrategy(async (username, password, done) => {
+    new LocalStrategy(async (username: string, password: string, done: (error: any, user?: any, options?: any) => void) => {
       try {
         const user = await User.findOne({ username });
         if (!user) {
@@ -22,11 +22,11 @@ export const configurePassport = () => {
     })
   );
 
-  passport.serializeUser((user: any, done) => {
+  passport.serializeUser((user: any, done: (error: any, id?: any) => void) => {
     done(null, user.id);
   });
 
-  passport.deserializeUser(async (id, done) => {
+  passport.deserializeUser(async (id: string, done: (error: any, user?: any) => void) => {
     try {
       const user = await User.findById(id);
       done(null, user);
