@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6.0
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: echo "db.runCommand('ping').ok" | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  mongodb-setup:
+    image: mongo:6.0
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    command: >
+      mongosh --host mongodb:27017 --eval '
+        rs.initiate({
+          _id: "rs0",
+          members: [{ _id: 0, host: "mongodb:27017" }]
+        })
+      '
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+
+  backend-api:
+    build:
+      context: .
+      dockerfile: apps/backend-api/Dockerfile
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/myapp?replicaSet=rs0
+      - REDIS_URL=redis://redis:6379
+      - SESSION_SECRET=supersecret
+      - PORT=3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  mongo-es-sync:
+    build:
+      context: .
+      dockerfile: apps/mongo-es-sync/Dockerfile
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/myapp?replicaSet=rs0
+      - ELASTICSEARCH_NODE=http://elasticsearch:9200
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_started
+
+  frontend-shell:
+    build:
+      context: .
+      dockerfile: apps/frontend-shell/Dockerfile
+    ports:
+      - "4200:80"
+    depends_on:
+      - frontend-mf-auth
+      - frontend-mf-dashboard
+
+  frontend-mf-auth:
+    build:
+      context: .
+      dockerfile: apps/frontend-mf-auth/Dockerfile
+    ports:
+      - "4201:80"
+
+  frontend-mf-dashboard:
+    build:
+      context: .
+      dockerfile: apps/frontend-mf-dashboard/Dockerfile
+    ports:
+      - "4202:80"
+
+networks:
+  default:
+    name: monorepo-network

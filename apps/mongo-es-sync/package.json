@@ -1,0 +1,22 @@
+{
+  "name": "mongo-es-sync",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "mongoose": "latest",
+    "@elastic/elasticsearch": "latest",
+    "dotenv": "latest",
+    "@repo/shared-types": "workspace:*",
+    "@repo/shared-utils": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "ts-node-dev": "latest",
+    "typescript": "latest"
+  }
+}

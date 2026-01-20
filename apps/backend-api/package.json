@@ -1,0 +1,35 @@
+{
+  "name": "backend-api",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "express": "latest",
+    "express-session": "latest",
+    "connect-redis": "latest",
+    "redis": "latest",
+    "mongoose": "latest",
+    "passport": "latest",
+    "passport-local": "latest",
+    "bcryptjs": "latest",
+    "cors": "latest",
+    "dotenv": "latest",
+    "@repo/shared-types": "workspace:*",
+    "@repo/shared-utils": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/express": "latest",
+    "@types/express-session": "latest",
+    "@types/passport": "latest",
+    "@types/passport-local": "latest",
+    "@types/bcryptjs": "latest",
+    "@types/cors": "latest",
+    "@types/node": "latest",
+    "ts-node-dev": "latest",
+    "typescript": "latest"
+  }
+}
