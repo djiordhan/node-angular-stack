@@ -1,13 +1,15 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 RUN npm install -g pnpm
+
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY apps/frontend-mf-auth/package.json ./apps/frontend-mf-auth/
-COPY packages/ ./packages/
 COPY apps/frontend-shell/package.json ./apps/frontend-shell/
+COPY apps/frontend-mf-auth/package.json ./apps/frontend-mf-auth/
 COPY apps/frontend-mf-dashboard/package.json ./apps/frontend-mf-dashboard/
 COPY apps/backend-api/package.json ./apps/backend-api/
 COPY apps/mongo-es-sync/package.json ./apps/mongo-es-sync/
+COPY packages/shared-types/package.json ./packages/shared-types/
+COPY packages/shared-utils/package.json ./packages/shared-utils/
 
 RUN pnpm install --filter frontend-mf-auth... --filter @repo/shared-types --filter @repo/shared-utils
 
