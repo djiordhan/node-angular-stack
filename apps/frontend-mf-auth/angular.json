@@ -19,6 +19,7 @@
             "main": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "extraWebpackConfig": "webpack.config.js",
+            "outputPath": "dist/frontend-mf-auth",
             "assets": [
               {
                 "glob": "**/*",

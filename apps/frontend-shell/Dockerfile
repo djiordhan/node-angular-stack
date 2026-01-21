@@ -12,7 +12,8 @@ COPY apps/mongo-es-sync/package.json ./apps/mongo-es-sync/
 COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/shared-utils/package.json ./packages/shared-utils/
 
-RUN pnpm install --filter frontend-shell... --filter @repo/shared-types --filter @repo/shared-utils
+RUN pnpm config set store-dir /app/.pnpm-store
+RUN pnpm install --filter frontend-shell... --filter @repo/shared-types --filter @repo/shared-utils --frozen-lockfile --aggregate-output --shamefully-hoist --network-concurrency 1
 
 # Copy source code
 COPY . .
@@ -24,7 +25,7 @@ RUN pnpm --filter frontend-shell build
 
 # Serve stage
 FROM nginx:alpine
-COPY --from=build /app/apps/frontend-shell/dist/frontend-shell/browser /usr/share/nginx/html
+COPY --from=build /app/apps/frontend-shell/dist/frontend-shell /usr/share/nginx/html
 COPY apps/frontend-shell/nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

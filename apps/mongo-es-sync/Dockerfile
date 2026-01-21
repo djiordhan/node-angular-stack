@@ -11,7 +11,8 @@ COPY apps/mongo-es-sync/package.json ./apps/mongo-es-sync/
 COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/shared-utils/package.json ./packages/shared-utils/
 
-RUN pnpm install --filter mongo-es-sync... --filter @repo/shared-types --filter @repo/shared-utils
+RUN pnpm config set store-dir /app/.pnpm-store
+RUN pnpm install --filter mongo-es-sync... --filter @repo/shared-types --filter @repo/shared-utils --frozen-lockfile --aggregate-output --shamefully-hoist --network-concurrency 1
 
 COPY . .
 RUN pnpm --filter @repo/shared-types build
