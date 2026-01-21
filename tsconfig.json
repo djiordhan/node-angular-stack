@@ -1,12 +1,6 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
-    "paths": {
-      "@repo/shared-types": ["packages/shared-types/src/index.ts"],
-      "@repo/shared-types/*": ["packages/shared-types/src/*"],
-      "@repo/shared-utils": ["packages/shared-utils/src/index.ts"],
-      "@repo/shared-utils/*": ["packages/shared-utils/src/*"]
-    },
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
