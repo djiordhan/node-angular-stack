@@ -20,7 +20,7 @@ RUN pnpm --filter @repo/shared-utils build
 RUN pnpm --filter frontend-mf-auth build
 
 FROM nginx:alpine
-COPY --from=build /app/apps/frontend-mf-auth/dist/frontend-mf-auth /usr/share/nginx/html
+COPY --from=build /app/apps/frontend-mf-auth/dist/frontend-mf-auth/browser /usr/share/nginx/html
 COPY apps/frontend-mf-auth/nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

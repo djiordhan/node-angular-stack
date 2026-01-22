@@ -20,7 +20,7 @@ RUN pnpm --filter @repo/shared-utils build
 RUN pnpm --filter frontend-mf-dashboard build
 
 FROM nginx:alpine
-COPY --from=build /app/apps/frontend-mf-dashboard/dist/frontend-mf-dashboard /usr/share/nginx/html
+COPY --from=build /app/apps/frontend-mf-dashboard/dist/frontend-mf-dashboard/browser /usr/share/nginx/html
 COPY apps/frontend-mf-dashboard/nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
