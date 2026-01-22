@@ -16,6 +16,9 @@ async function run() {
 
     // MongoDB Change Stream (Requires Replica Set)
     const db = mongoose.connection.db;
+    if (!db) {
+      throw new Error('MongoDB connection successful but db is undefined');
+    }
     
     // Check if the collection exists before watching it
     const collections = await db.listCollections({ name: 'users' }).toArray();
