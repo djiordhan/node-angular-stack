@@ -54,7 +54,16 @@ This will start:
 - MF-Auth (`http://localhost:4201`)
 - MF-Dashboard (`http://localhost:4202`)
 
-### 3. Local Development
+### 3. Sample Credentials
+
+The database is automatically seeded with the following users:
+
+| Username | Password | Role |
+| :--- | :--- | :--- |
+| **admin** | `admin123` | Administrator |
+| **jordan** | `password123` | Regular User |
+
+### 4. Local Development
 
 To run each application locally without Docker:
 

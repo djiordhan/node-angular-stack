@@ -8,6 +8,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 import { configurePassport } from './config/passport';
+import { seedDatabase } from './seed';
 
 dotenv.config();
 
@@ -64,8 +65,9 @@ app.get('/protected', (req: express.Request, res: express.Response) => {
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/myapp';
 mongoose
   .connect(MONGO_URI)
-  .then(() => {
+  .then(async () => {
     console.log('Connected to MongoDB');
+    await seedDatabase();
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
   .catch((err) => console.error('MongoDB connection error:', err));
