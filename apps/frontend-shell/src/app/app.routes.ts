@@ -1,7 +1,13 @@
 import { Routes } from '@angular/router';
 import { loadRemoteModule } from '@angular-architects/module-federation';
+import { LoginComponent } from './login.component';
+import { authGuard } from './auth.guard';
 
 export const routes: Routes = [
+  {
+    path: 'login',
+    component: LoginComponent
+  },
   {
     path: 'auth',
     loadChildren: () =>
@@ -13,6 +19,7 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard',
+    canActivate: [authGuard],
     loadChildren: () =>
       loadRemoteModule({
         type: 'module',
@@ -20,5 +27,6 @@ export const routes: Routes = [
         exposedModule: './Module',
       }).then((m) => m.DASHBOARD_ROUTES),
   },
-  { path: '', redirectTo: 'auth', pathMatch: 'full' }
+  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+  { path: '**', redirectTo: 'dashboard' }
 ];
