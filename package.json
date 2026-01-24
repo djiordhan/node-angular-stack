@@ -5,7 +5,7 @@
     "build": "turbo build",
     "dev": "turbo dev",
     "watch": "turbo run watch --parallel",
-    "docker:dev": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build",
+    "docker:dev": "docker compose down && docker compose -f docker-compose.dev.yml up --build",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },

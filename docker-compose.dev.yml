@@ -1,7 +1,56 @@
 version: '3.8'
 
 services:
+  mongodb:
+    image: mongo:6.0
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: echo "db.runCommand('ping').ok" | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  mongodb-setup:
+    image: mongo:6.0
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    command: >
+      mongosh --host mongodb:27017 --eval '
+        rs.initiate({
+          _id: "rs0",
+          members: [{ _id: 0, host: "mongodb:27017" }]
+        })
+      '
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+
   backend-api:
+    build:
+      context: .
+      dockerfile: apps/backend-api/Dockerfile
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/myapp?replicaSet=rs0
+      - REDIS_URL=redis://redis:6379
+      - SESSION_SECRET=supersecret
+      - PORT=3000
+    ports:
+      - "3000:3000"
     command: pnpm --filter backend-api watch
     volumes:
       - .:/app
@@ -9,8 +58,19 @@ services:
       - /app/apps/backend-api/node_modules
       - /app/packages/shared-types/node_modules
       - /app/packages/shared-utils/node_modules
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_started
 
   mongo-es-sync:
+    build:
+      context: .
+      dockerfile: apps/mongo-es-sync/Dockerfile
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/myapp?replicaSet=rs0
+      - ELASTICSEARCH_NODE=http://elasticsearch:9200
     command: pnpm --filter mongo-es-sync watch
     volumes:
       - .:/app
@@ -18,30 +78,38 @@ services:
       - /app/apps/mongo-es-sync/node_modules
       - /app/packages/shared-types/node_modules
       - /app/packages/shared-utils/node_modules
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_started
 
   frontend-shell:
     build:
       context: .
       dockerfile: apps/frontend-shell/Dockerfile
       target: build
-    command: pnpm --filter frontend-shell dev -- --host 0.0.0.0 --disable-host-check
     ports:
       - "4200:4200"
+    command: pnpm --filter frontend-shell dev -- --host 0.0.0.0 --poll 1000 --disable-host-check
     volumes:
       - .:/app
       - /app/node_modules
       - /app/apps/frontend-shell/node_modules
       - /app/packages/shared-types/node_modules
       - /app/packages/shared-utils/node_modules
+    depends_on:
+      - frontend-mf-auth
+      - frontend-mf-dashboard
 
   frontend-mf-auth:
     build:
       context: .
       dockerfile: apps/frontend-mf-auth/Dockerfile
       target: build
-    command: pnpm --filter frontend-mf-auth dev -- --host 0.0.0.0 --disable-host-check
     ports:
       - "4201:4201"
+    command: pnpm --filter frontend-mf-auth dev -- --host 0.0.0.0 --poll 1000 --disable-host-check
     volumes:
       - .:/app
       - /app/node_modules
@@ -54,12 +122,16 @@ services:
       context: .
       dockerfile: apps/frontend-mf-dashboard/Dockerfile
       target: build
-    command: pnpm --filter frontend-mf-dashboard dev -- --host 0.0.0.0 --disable-host-check
     ports:
       - "4202:4202"
+    command: pnpm --filter frontend-mf-dashboard dev -- --host 0.0.0.0 --poll 1000 --disable-host-check
     volumes:
       - .:/app
       - /app/node_modules
       - /app/apps/frontend-mf-dashboard/node_modules
       - /app/packages/shared-types/node_modules
       - /app/packages/shared-utils/node_modules
+
+networks:
+  default:
+    name: monorepo-network
