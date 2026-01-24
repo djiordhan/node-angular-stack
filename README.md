@@ -74,8 +74,11 @@ docker compose up mongodb redis elasticsearch -d
 # Build shared packages
 pnpm build
 
-# Start all apps in dev mode
+# Start all apps in live dev mode (hot reload)
 pnpm dev
+
+# Or start all apps in watch/rebuild mode
+pnpm watch
 ```
 
 ## Folder Structure
