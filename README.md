@@ -40,19 +40,21 @@ pnpm install
 
 Start the entire stack with a single command:
 
+**Production Mode (Pre-built static files):**
 ```bash
 docker compose up --build
 ```
 
-This will start:
-- MongoDB (with Replica Set initialization)
-- Redis
-- Elasticsearch
-- Backend API (`http://localhost:3000`)
-- Sync Service
-- Frontend Shell (`http://localhost:4200`)
-- MF-Auth (`http://localhost:4201`)
-- MF-Dashboard (`http://localhost:4202`)
+**Development Mode (Watch/Hot-reload enabled):**
+```bash
+# Recommended for active development
+npm run docker:dev
+```
+
+In Development Mode:
+- **Backend**: Changes to `apps/backend-api` or `apps/mongo-es-sync` will trigger an automatic restart.
+- **Frontend**: Changes to any Angular app or `packages/shared-*` will trigger a hot reload.
+- **Ports**: Frontend apps run on their native ports (Shell: 4200, Auth: 4201, Dashboard: 4202).
 
 ### 3. Sample Credentials
 

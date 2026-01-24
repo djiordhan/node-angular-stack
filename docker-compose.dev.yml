@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  backend-api:
+    command: pnpm --filter backend-api watch
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/backend-api/node_modules
+      - /app/packages/shared-types/node_modules
+      - /app/packages/shared-utils/node_modules
+
+  mongo-es-sync:
+    command: pnpm --filter mongo-es-sync watch
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/mongo-es-sync/node_modules
+      - /app/packages/shared-types/node_modules
+      - /app/packages/shared-utils/node_modules
+
+  frontend-shell:
+    build:
+      context: .
+      dockerfile: apps/frontend-shell/Dockerfile
+      target: build
+    command: pnpm --filter frontend-shell dev -- --host 0.0.0.0 --disable-host-check
+    ports:
+      - "4200:4200"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/frontend-shell/node_modules
+      - /app/packages/shared-types/node_modules
+      - /app/packages/shared-utils/node_modules
+
+  frontend-mf-auth:
+    build:
+      context: .
+      dockerfile: apps/frontend-mf-auth/Dockerfile
+      target: build
+    command: pnpm --filter frontend-mf-auth dev -- --host 0.0.0.0 --disable-host-check
+    ports:
+      - "4201:4201"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/frontend-mf-auth/node_modules
+      - /app/packages/shared-types/node_modules
+      - /app/packages/shared-utils/node_modules
+
+  frontend-mf-dashboard:
+    build:
+      context: .
+      dockerfile: apps/frontend-mf-dashboard/Dockerfile
+      target: build
+    command: pnpm --filter frontend-mf-dashboard dev -- --host 0.0.0.0 --disable-host-check
+    ports:
+      - "4202:4202"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/frontend-mf-dashboard/node_modules
+      - /app/packages/shared-types/node_modules
+      - /app/packages/shared-utils/node_modules
