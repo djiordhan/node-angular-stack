@@ -1,6 +1,6 @@
 FROM node:20-alpine AS build
 WORKDIR /app
-RUN npm install -g pnpm
+RUN npm install -g pnpm @angular/cli
 
 # Install dependencies first for better caching
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -12,8 +12,8 @@ COPY apps/mongo-es-sync/package.json ./apps/mongo-es-sync/
 COPY packages/shared-types/package.json ./packages/shared-types/
 COPY packages/shared-utils/package.json ./packages/shared-utils/
 
-RUN pnpm config set store-dir /app/.pnpm-store
-RUN pnpm install --filter frontend-shell... --filter @repo/shared-types --filter @repo/shared-utils --frozen-lockfile --aggregate-output --shamefully-hoist --network-concurrency 1
+RUN pnpm config set store-dir /pnpm-store
+RUN pnpm install --filter frontend-shell... --filter @repo/shared-types --filter @repo/shared-utils --frozen-lockfile --aggregate-output --shamefully-hoist
 
 # Copy source code
 COPY . .

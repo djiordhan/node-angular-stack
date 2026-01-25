@@ -91,13 +91,15 @@ services:
       target: build
     ports:
       - "4200:4200"
-    command: pnpm --filter frontend-shell dev -- --host 0.0.0.0 --poll 1000 --disable-host-check
+    command: pnpm --filter frontend-shell run dev --host 0.0.0.0 --poll 1000 --disable-host-check
     volumes:
       - .:/app
       - /app/node_modules
       - /app/apps/frontend-shell/node_modules
       - /app/packages/shared-types/node_modules
       - /app/packages/shared-utils/node_modules
+      - /app/packages/shared-types/dist
+      - /app/packages/shared-utils/dist
     depends_on:
       - frontend-mf-auth
       - frontend-mf-dashboard
@@ -109,13 +111,15 @@ services:
       target: build
     ports:
       - "4201:4201"
-    command: pnpm --filter frontend-mf-auth dev -- --host 0.0.0.0 --poll 1000 --disable-host-check
+    command: pnpm --filter frontend-mf-auth run dev --host 0.0.0.0 --poll 1000 --disable-host-check
     volumes:
       - .:/app
       - /app/node_modules
       - /app/apps/frontend-mf-auth/node_modules
       - /app/packages/shared-types/node_modules
       - /app/packages/shared-utils/node_modules
+      - /app/packages/shared-types/dist
+      - /app/packages/shared-utils/dist
 
   frontend-mf-dashboard:
     build:
@@ -124,13 +128,15 @@ services:
       target: build
     ports:
       - "4202:4202"
-    command: pnpm --filter frontend-mf-dashboard dev -- --host 0.0.0.0 --poll 1000 --disable-host-check
+    command: pnpm --filter frontend-mf-dashboard run dev --host 0.0.0.0 --poll 1000 --disable-host-check
     volumes:
       - .:/app
       - /app/node_modules
       - /app/apps/frontend-mf-dashboard/node_modules
       - /app/packages/shared-types/node_modules
       - /app/packages/shared-utils/node_modules
+      - /app/packages/shared-types/dist
+      - /app/packages/shared-utils/dist
 
 networks:
   default:
