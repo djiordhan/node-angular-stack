@@ -1,7 +1,7 @@
 import express from 'express';
 import passport from 'passport';
 import bcrypt from 'bcryptjs';
-import { User } from '../models/User';
+import { getUsersCollection } from '../models/User';
 import { AuthResponse } from '@repo/shared-types';
 
 const router = express.Router();
@@ -9,8 +9,8 @@ const router = express.Router();
 router.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
   const hashedPassword = await bcrypt.hash(password, 10);
-  const newUser = new User({ username, email, password: hashedPassword });
-  await newUser.save();
+  const users = getUsersCollection();
+  await users.insertOne({ username, email, password: hashedPassword, role: 'user' });
   res.status(201).json({ message: 'User registered' });
 });
 
@@ -18,7 +18,7 @@ router.post('/login', passport.authenticate('local'), (req, res) => {
   const user = req.user as any;
   const response: AuthResponse = {
     user: {
-      id: user._id,
+      id: user._id?.toString?.() ?? user._id,
       username: user.username,
       email: user.email,
       role: user.role

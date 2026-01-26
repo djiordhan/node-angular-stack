@@ -13,7 +13,7 @@
     "express-session": "latest",
     "connect-redis": "latest",
     "redis": "latest",
-    "mongoose": "latest",
+    "mongodb": "latest",
     "passport": "latest",
     "passport-local": "latest",
     "bcryptjs": "latest",

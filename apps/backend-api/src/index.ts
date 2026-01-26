@@ -1,5 +1,4 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import session from 'express-session';
 import { RedisStore } from 'connect-redis';
 import { createClient } from 'redis';
@@ -8,6 +7,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 import { configurePassport } from './config/passport';
+import { connectToDatabase } from './config/db';
 import { seedDatabase } from './seed';
 
 dotenv.config();
@@ -63,8 +63,7 @@ app.get('/protected', (req: express.Request, res: express.Response) => {
 
 // MongoDB Connection
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/myapp';
-mongoose
-  .connect(MONGO_URI)
+connectToDatabase(MONGO_URI)
   .then(async () => {
     console.log('Connected to MongoDB');
     await seedDatabase();
