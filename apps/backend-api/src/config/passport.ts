@@ -1,13 +1,15 @@
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import bcrypt from 'bcryptjs';
-import { User } from '../models/User';
+import { ObjectId } from 'mongodb';
+import { getUsersCollection } from '../models/User';
 
 export const configurePassport = () => {
   passport.use(
     new LocalStrategy(async (username: string, password: string, done: (error: any, user?: any, options?: any) => void) => {
       try {
-        const user = await User.findOne({ username });
+        const users = getUsersCollection();
+        const user = await users.findOne({ username });
         if (!user) {
           return done(null, false, { message: 'Incorrect username.' });
         }
@@ -23,12 +25,13 @@ export const configurePassport = () => {
   );
 
   passport.serializeUser((user: any, done: (error: any, id?: any) => void) => {
-    done(null, user.id);
+    done(null, user._id?.toString?.() ?? user.id);
   });
 
   passport.deserializeUser(async (id: string, done: (error: any, user?: any) => void) => {
     try {
-      const user = await User.findById(id);
+      const users = getUsersCollection();
+      const user = await users.findOne({ _id: new ObjectId(id) });
       done(null, user);
     } catch (err) {
       done(err);

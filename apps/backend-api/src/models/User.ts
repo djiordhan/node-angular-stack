@@ -1,10 +1,14 @@
-import mongoose from 'mongoose';
+import { Collection, ObjectId } from 'mongodb';
+import { getDb } from '../config/db';
 
-const UserSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  role: { type: String, enum: ['admin', 'user'], default: 'user' },
-});
+export interface UserDocument {
+  _id?: ObjectId;
+  username: string;
+  email: string;
+  password: string;
+  role: 'admin' | 'user';
+}
 
-export const User = mongoose.model('User', UserSchema);
+export const getUsersCollection = (): Collection<UserDocument> => {
+  return getDb().collection<UserDocument>('users');
+};

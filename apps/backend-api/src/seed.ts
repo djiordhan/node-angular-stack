@@ -1,34 +1,33 @@
 import bcrypt from 'bcryptjs';
-import { User } from './models/User';
+import { getUsersCollection } from './models/User';
 
 export const seedDatabase = async () => {
   try {
-    const adminExists = await User.findOne({ username: 'admin' });
-    
+    const users = getUsersCollection();
+    const adminExists = await users.findOne({ username: 'admin' });
+
     if (!adminExists) {
       const hashedPassword = await bcrypt.hash('admin123', 10);
-      const adminUser = new User({
+      await users.insertOne({
         username: 'admin',
         email: 'admin@example.com',
         password: hashedPassword,
-        role: 'admin'
+        role: 'admin',
       });
-      await adminUser.save();
       console.log('✅ Seed: Admin user created');
     } else {
       console.log('ℹ️ Seed: Admin user already exists');
     }
 
-    const testUserExists = await User.findOne({ username: 'jordan' });
+    const testUserExists = await users.findOne({ username: 'jordan' });
     if (!testUserExists) {
       const hashedPassword = await bcrypt.hash('password123', 10);
-      const testUser = new User({
+      await users.insertOne({
         username: 'jordan',
         email: 'jordan@example.com',
         password: hashedPassword,
-        role: 'user'
+        role: 'user',
       });
-      await testUser.save();
       console.log('✅ Seed: Test user "jordan" created');
     } else {
       console.log('ℹ️ Seed: Test user already exists');
