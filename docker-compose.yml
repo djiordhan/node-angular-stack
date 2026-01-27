@@ -94,6 +94,13 @@ services:
     ports:
       - "4202:80"
 
+  frontend-react:
+    build:
+      context: .
+      dockerfile: apps/frontend-react/Dockerfile
+    ports:
+      - "4300:80"
+
 networks:
   default:
     name: monorepo-network

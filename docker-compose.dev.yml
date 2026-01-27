@@ -138,6 +138,19 @@ services:
       - /app/packages/shared-types/dist
       - /app/packages/shared-utils/dist
 
+  frontend-react:
+    build:
+      context: .
+      dockerfile: apps/frontend-react/Dockerfile
+      target: build
+    ports:
+      - "4300:4300"
+    command: pnpm --filter frontend-react run dev --host 0.0.0.0 --port 4300 --strictPort
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/apps/frontend-react/node_modules
+
 networks:
   default:
     name: monorepo-network
