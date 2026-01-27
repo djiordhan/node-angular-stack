@@ -7,6 +7,7 @@ This project is a full-stack monorepo built with **Turborepo**, **pnpm**, **Angu
 - **Frontend Shell**: The main Angular application that hosts and orchestrates microfrontends.
 - **MF-Auth**: A microfrontend handling authentication (Login/Logout).
 - **MF-Dashboard**: A microfrontend displaying user statistics and data.
+- **Frontend React**: A standalone React app for teams that want a React-based UI.
 - **Backend API**: Node.js/Express API with Passport.js local strategy and Redis session store.
 - **Sync Service**: A Node.js background service that uses MongoDB Change Streams to sync data to Elasticsearch.
 - **Shared Packages**:
@@ -17,7 +18,7 @@ This project is a full-stack monorepo built with **Turborepo**, **pnpm**, **Angu
 ## Tech Stack
 
 - **Monorepo**: Turborepo, pnpm
-- **Frontend**: Angular 21 (Standalone Components, Module Federation)
+- **Frontend**: Angular 21 (Standalone Components, Module Federation) + React (Vite)
 - **Backend**: Node.js, Express, Passport.js, Mongoose
 - **Databases**: MongoDB, Elasticsearch, Redis
 - **Containerization**: Docker, Docker Compose
@@ -54,7 +55,7 @@ npm run docker:dev
 In Development Mode:
 - **Backend**: Changes to `apps/backend-api` or `apps/mongo-es-sync` will trigger an automatic restart.
 - **Frontend**: Changes to any Angular app or `packages/shared-*` will trigger a hot reload.
-- **Ports**: Frontend apps run on their native ports (Shell: 4200, Auth: 4201, Dashboard: 4202).
+- **Ports**: Frontend apps run on their native ports (Shell: 4200, Auth: 4201, Dashboard: 4202, React: 4300).
 
 ### 3. Sample Credentials
 
@@ -91,6 +92,7 @@ pnpm watch
 │   ├── frontend-shell/       # Angular Host
 │   ├── frontend-mf-auth/      # Auth Microfrontend
 │   ├── frontend-mf-dashboard/ # Dashboard Microfrontend
+│   ├── frontend-react/        # React Frontend
 │   ├── backend-api/          # Express API
 │   └── mongo-es-sync/        # Sync Service
 ├── packages/

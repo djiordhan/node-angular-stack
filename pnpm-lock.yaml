@@ -41,9 +41,9 @@ importers:
       express-session:
         specifier: latest
         version: 1.18.2
-      mongoose:
+      mongodb:
         specifier: latest
-        version: 9.1.4(socks@2.8.7)
+        version: 7.0.0(socks@2.8.7)
       passport:
         specifier: latest
         version: 0.7.0
@@ -191,6 +191,19 @@ importers:
       vitest:
         specifier: ^4.0.8
         version: 4.0.17(@opentelemetry/api@1.9.0)(@types/node@25.0.9)(jsdom@27.4.0)(sass@1.97.1)
+
+  apps/frontend-react:
+    dependencies:
+      react:
+        specifier: 19.2.3
+        version: 19.2.3
+      react-dom:
+        specifier: 19.2.3
+        version: 19.2.3(react@19.2.3)
+    devDependencies:
+      vite:
+        specifier: 7.3.1
+        version: 7.3.1(@types/node@25.0.9)(sass@1.97.1)
 
   apps/frontend-shell:
     dependencies:
