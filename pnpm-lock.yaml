@@ -17,6 +17,9 @@ importers:
 
   apps/backend-api:
     dependencies:
+      '@elastic/elasticsearch':
+        specifier: latest
+        version: 9.2.0
       '@repo/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types

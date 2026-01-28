@@ -6,6 +6,7 @@ import passport from 'passport';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
+import gisRoutes from './routes/gis';
 import { configurePassport } from './config/passport';
 import { connectToDatabase } from './config/db';
 import { seedDatabase } from './seed';
@@ -16,7 +17,15 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:4200', credentials: true }));
+const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:4200,http://localhost:4300')
+  .split(',')
+  .map((origin) => origin.trim());
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // Redis Setup
@@ -52,6 +61,7 @@ app.use(passport.session());
 
 // Routes
 app.use('/auth', authRoutes);
+app.use('/gis', gisRoutes);
 
 app.get('/protected', (req: express.Request, res: express.Response) => {
   if (req.isAuthenticated()) {

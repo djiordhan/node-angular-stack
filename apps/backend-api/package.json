@@ -14,6 +14,7 @@
     "connect-redis": "latest",
     "redis": "latest",
     "mongodb": "latest",
+    "@elastic/elasticsearch": "latest",
     "passport": "latest",
     "passport-local": "latest",
     "bcryptjs": "latest",
