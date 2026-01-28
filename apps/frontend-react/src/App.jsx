@@ -1,215 +1,301 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-const cards = [
-  {
-    title: 'Express API',
-    description: 'Backend REST API with session-based auth and Redis store.',
-    link: '/api/health',
-    action: 'Check API health',
-  },
-  {
-    title: 'Angular Shell',
-    description: 'Module-federated Angular host application.',
-    link: 'http://localhost:4200',
-    action: 'Open Angular shell',
-  },
-  {
-    title: 'Auth Microfrontend',
-    description: 'Login and logout experience in Angular.',
-    link: 'http://localhost:4201',
-    action: 'Open auth MF',
-  },
-  {
-    title: 'Dashboard Microfrontend',
-    description: 'User stats and analytics module.',
-    link: 'http://localhost:4202',
-    action: 'Open dashboard MF',
-  },
-];
-
-const initialCredentials = {
-  username: '',
-  password: '',
+const initialLocation = {
+  name: '',
+  type: 'Monitoring Station',
+  status: 'Active',
+  region: '',
+  latitude: '',
+  longitude: '',
+  tags: '',
+  notes: '',
 };
 
 export default function App() {
-  const [credentials, setCredentials] = useState(initialCredentials);
-  const [status, setStatus] = useState({
-    state: 'idle',
-    user: null,
-    message: '',
-  });
+  const [locations, setLocations] = useState([]);
+  const [insights, setInsights] = useState({ total: 0, byStatus: [], byType: [] });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [formState, setFormState] = useState(initialLocation);
+  const [status, setStatus] = useState({ state: 'idle', message: '' });
 
-  const fetchSession = async () => {
-    setStatus((prev) => ({ ...prev, state: 'loading', message: '' }));
+  const summary = useMemo(() => {
+    const statusMap = insights.byStatus.reduce((acc, item) => {
+      acc[item.status] = item.count;
+      return acc;
+    }, {});
+    const typeMap = insights.byType.reduce((acc, item) => {
+      acc[item.type] = item.count;
+      return acc;
+    }, {});
+    return { statusMap, typeMap };
+  }, [insights]);
+
+  const fetchLocations = async () => {
+    setStatus({ state: 'loading', message: 'Loading locations…' });
     try {
-      const response = await fetch('/api/auth/me', {
-        credentials: 'include',
-      });
-
+      const response = await fetch('/api/gis/locations?limit=8');
       if (!response.ok) {
-        if (response.status === 401) {
-          setStatus({ state: 'idle', user: null, message: 'Not logged in.' });
-          return;
-        }
-        throw new Error('Unable to load session');
+        throw new Error('Unable to load locations.');
       }
-
       const data = await response.json();
-      setStatus({ state: 'ready', user: data, message: 'Logged in.' });
+      setLocations(data.locations);
+      setStatus({ state: 'ready', message: 'Locations updated.' });
     } catch (error) {
-      setStatus({ state: 'error', user: null, message: error.message });
+      setStatus({ state: 'error', message: error.message });
     }
   };
 
-  useEffect(() => {
-    void fetchSession();
-  }, []);
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setCredentials((prev) => ({ ...prev, [name]: value }));
+  const fetchInsights = async () => {
+    try {
+      const response = await fetch('/api/gis/insights');
+      if (!response.ok) {
+        throw new Error('Unable to load insights.');
+      }
+      const data = await response.json();
+      setInsights(data);
+    } catch (error) {
+      setInsights({ total: 0, byStatus: [], byType: [] });
+    }
   };
 
-  const handleLogin = async (event) => {
+  const handleSearch = async (event) => {
     event.preventDefault();
-    setStatus((prev) => ({ ...prev, state: 'loading', message: '' }));
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    setStatus({ state: 'loading', message: 'Searching Elasticsearch…' });
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`/api/gis/locations/search?q=${encodeURIComponent(searchQuery)}`);
+      if (!response.ok) {
+        throw new Error('Search failed.');
+      }
+      const data = await response.json();
+      setSearchResults(data.results);
+      setStatus({ state: 'ready', message: `${data.results.length} results found.` });
+    } catch (error) {
+      setStatus({ state: 'error', message: error.message });
+    }
+  };
+
+  const handleFormChange = (event) => {
+    const { name, value } = event.target;
+    setFormState((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCreateLocation = async (event) => {
+    event.preventDefault();
+    setStatus({ state: 'loading', message: 'Creating location…' });
+    try {
+      const response = await fetch('/api/gis/locations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
-        body: JSON.stringify(credentials),
+        body: JSON.stringify({
+          ...formState,
+          latitude: Number(formState.latitude),
+          longitude: Number(formState.longitude),
+        }),
       });
-
       if (!response.ok) {
-        throw new Error('Login failed. Check your credentials.');
+        throw new Error('Unable to save location.');
       }
-
-      const data = await response.json();
-      setStatus({ state: 'ready', user: data.user, message: data.message });
-      setCredentials(initialCredentials);
+      setFormState(initialLocation);
+      await Promise.all([fetchLocations(), fetchInsights()]);
     } catch (error) {
-      setStatus({ state: 'error', user: null, message: error.message });
+      setStatus({ state: 'error', message: error.message });
     }
   };
 
-  const handleLogout = async () => {
-    setStatus((prev) => ({ ...prev, state: 'loading', message: '' }));
-    try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Logout failed.');
-      }
-
-      setStatus({ state: 'idle', user: null, message: 'Logged out.' });
-    } catch (error) {
-      setStatus({ state: 'error', user: null, message: error.message });
-    }
-  };
+  useEffect(() => {
+    void fetchLocations();
+    void fetchInsights();
+  }, []);
 
   return (
     <div className="app">
       <header className="hero">
-        <p className="eyebrow">React companion frontend</p>
-        <h1>Node + Angular Stack (React Edition)</h1>
+        <p className="eyebrow">GeoIntel MVP</p>
+        <h1>GIS Command Center</h1>
         <p>
-          This lightweight React app provides quick links to the existing services in the stack
-          and serves as a starting point for a React-based UI.
+          Track field assets, monitor regional activity, and search geospatial metadata indexed in
+          Elasticsearch. MongoDB retains the source of truth while the search layer powers rapid
+          discovery.
         </p>
         <div className="meta">
-          <span>Port: 4300</span>
-          <span>Mode: Vite + React</span>
-          <span>Watch-ready</span>
+          <span>MongoDB + Elasticsearch</span>
+          <span>Realtime GIS overview</span>
+          <span>MVP React experience</span>
         </div>
       </header>
 
-      <section className="auth-panel">
+      <section className="status-panel">
         <div>
-          <p className="eyebrow">Session status</p>
-          <h2>Login status</h2>
-          <p className="status-message">
-            {status.state === 'loading' && 'Checking session…'}
-            {status.state !== 'loading' && status.message}
-          </p>
-          {status.user ? (
-            <div className="user-card">
-              <div>
-                <strong>{status.user.username}</strong>
-                <span>{status.user.email}</span>
-              </div>
-              <span className="role">{status.user.role}</span>
+          <p className="eyebrow">System pulse</p>
+          <h2>Operational snapshot</h2>
+          <p className="status-message">{status.message || 'Ready to run queries.'}</p>
+        </div>
+        <div className="pill-list">
+          <div className="pill">
+            <span className="pill-label">Total assets</span>
+            <strong>{insights.total}</strong>
+          </div>
+          <div className="pill">
+            <span className="pill-label">Active</span>
+            <strong>{summary.statusMap.Active || 0}</strong>
+          </div>
+          <div className="pill">
+            <span className="pill-label">Monitoring</span>
+            <strong>{summary.typeMap['Monitoring Station'] || 0}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section className="panel-grid">
+        <div className="panel">
+          <div className="panel-header">
+            <div>
+              <p className="eyebrow">Elasticsearch</p>
+              <h2>Search geospatial assets</h2>
             </div>
-          ) : (
-            <p className="status-hint">Use a seeded account to log in and start a session.</p>
-          )}
+            <form className="search-form" onSubmit={handleSearch}>
+              <input
+                name="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search by region, tag, or site name"
+              />
+              <button type="submit">Search</button>
+            </form>
+          </div>
+          <div className="results">
+            {searchResults.length === 0 ? (
+              <p className="muted">Search results will appear here.</p>
+            ) : (
+              searchResults.map((result) => (
+                <div className="result-card" key={result.id}>
+                  <div>
+                    <h3>{result.name}</h3>
+                    <p className="muted">{result.region}</p>
+                  </div>
+                  <div className="result-meta">
+                    <span>{result.type}</span>
+                    <span>{result.status}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </div>
 
-        <div className="auth-actions">
-          <form onSubmit={handleLogin} className="auth-form">
+        <div className="panel">
+          <div className="panel-header">
+            <div>
+              <p className="eyebrow">MongoDB</p>
+              <h2>Register a new location</h2>
+            </div>
+          </div>
+          <form className="location-form" onSubmit={handleCreateLocation}>
             <label>
-              Username
-              <input
-                name="username"
-                value={credentials.username}
-                onChange={handleChange}
-                placeholder="jane.doe"
-                autoComplete="username"
-                required
-              />
+              Site name
+              <input name="name" value={formState.name} onChange={handleFormChange} required />
             </label>
             <label>
-              Password
-              <input
-                name="password"
-                type="password"
-                value={credentials.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                autoComplete="current-password"
-                required
+              Region
+              <input name="region" value={formState.region} onChange={handleFormChange} required />
+            </label>
+            <div className="form-row">
+              <label>
+                Latitude
+                <input
+                  name="latitude"
+                  value={formState.latitude}
+                  onChange={handleFormChange}
+                  placeholder="37.7749"
+                  required
+                />
+              </label>
+              <label>
+                Longitude
+                <input
+                  name="longitude"
+                  value={formState.longitude}
+                  onChange={handleFormChange}
+                  placeholder="-122.4194"
+                  required
+                />
+              </label>
+            </div>
+            <div className="form-row">
+              <label>
+                Type
+                <select name="type" value={formState.type} onChange={handleFormChange}>
+                  <option>Monitoring Station</option>
+                  <option>Satellite Uplink</option>
+                  <option>Survey Zone</option>
+                  <option>Logistics Hub</option>
+                </select>
+              </label>
+              <label>
+                Status
+                <select name="status" value={formState.status} onChange={handleFormChange}>
+                  <option>Active</option>
+                  <option>Standby</option>
+                  <option>Maintenance</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              Tags (comma-separated)
+              <input name="tags" value={formState.tags} onChange={handleFormChange} />
+            </label>
+            <label>
+              Notes
+              <textarea
+                name="notes"
+                value={formState.notes}
+                onChange={handleFormChange}
+                rows="3"
               />
             </label>
-            <button type="submit" disabled={status.state === 'loading'}>
-              Log in
-            </button>
+            <button type="submit">Save location</button>
           </form>
-          <button
-            type="button"
-            className="secondary"
-            onClick={handleLogout}
-            disabled={status.state === 'loading' || !status.user}
-          >
-            Log out
+        </div>
+      </section>
+
+      <section className="panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">Recent updates</p>
+            <h2>Latest tracked assets</h2>
+          </div>
+          <button type="button" className="secondary" onClick={fetchLocations}>
+            Refresh list
           </button>
         </div>
-      </section>
-
-      <section className="grid">
-        {cards.map((card) => (
-          <article className="card" key={card.title}>
-            <h2>{card.title}</h2>
-            <p>{card.description}</p>
-            <a href={card.link} target="_blank" rel="noreferrer">
-              {card.action}
-            </a>
-          </article>
-        ))}
-      </section>
-
-      <section className="footer">
-        <h2>Next steps</h2>
-        <ul>
-          <li>Build React pages that consume the same API as the Angular shell.</li>
-          <li>Reuse shared types from <code>@repo/shared-types</code> when needed.</li>
-          <li>Deploy alongside existing services with Docker Compose.</li>
-        </ul>
+        <div className="location-list">
+          {locations.length === 0 ? (
+            <p className="muted">No locations yet. Add the first site to begin tracking.</p>
+          ) : (
+            locations.map((location) => (
+              <div className="location-card" key={location._id}>
+                <div>
+                  <h3>{location.name}</h3>
+                  <p className="muted">{location.region}</p>
+                  <p className="coords">
+                    {location.coordinates?.latitude}, {location.coordinates?.longitude}
+                  </p>
+                </div>
+                <div className="result-meta">
+                  <span>{location.type}</span>
+                  <span>{location.status}</span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </section>
     </div>
   );
