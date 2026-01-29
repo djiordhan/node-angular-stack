@@ -1,4 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
+import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet';
+import L from 'leaflet';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
 
 const initialLocation = {
   name: '',
@@ -30,6 +41,23 @@ export default function App() {
     }, {});
     return { statusMap, typeMap };
   }, [insights]);
+
+  const mapLocations = useMemo(
+    () =>
+      locations
+        .map((location) => ({
+          ...location,
+          latitude: Number(location.coordinates?.latitude),
+          longitude: Number(location.coordinates?.longitude),
+        }))
+        .filter((location) => Number.isFinite(location.latitude) && Number.isFinite(location.longitude)),
+    [locations]
+  );
+  const defaultCenter = [39.8283, -98.5795];
+  const mapCenter = mapLocations.length
+    ? [mapLocations[0].latitude, mapLocations[0].longitude]
+    : defaultCenter;
+  const mapZoom = mapLocations.length ? 4 : 2;
 
   const fetchLocations = async () => {
     setStatus({ state: 'loading', message: 'Loading locations…' });
@@ -262,6 +290,37 @@ export default function App() {
             </label>
             <button type="submit">Save location</button>
           </form>
+        </div>
+      </section>
+
+      <section className="panel map-panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">OpenStreetMap</p>
+            <h2>Live asset map</h2>
+            <p className="muted">Visualize the latest monitored locations with interactive markers.</p>
+          </div>
+          <div className="map-legend">
+            <span>Active sites</span>
+            <strong>{mapLocations.length}</strong>
+          </div>
+        </div>
+        <div className="map-container">
+          <MapContainer center={mapCenter} zoom={mapZoom} scrollWheelZoom={false} className="leaflet-map">
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            {mapLocations.map((location) => (
+              <Marker key={location._id} position={[location.latitude, location.longitude]}>
+                <Popup>
+                  <strong>{location.name}</strong>
+                  <br />
+                  {location.region} • {location.type}
+                </Popup>
+              </Marker>
+            ))}
+          </MapContainer>
         </div>
       </section>
 
