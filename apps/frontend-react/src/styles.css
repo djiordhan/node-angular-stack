@@ -125,6 +125,37 @@ body {
   gap: 20px;
 }
 
+.map-panel {
+  gap: 24px;
+}
+
+.map-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f1f5f9;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  color: #1e293b;
+}
+
+.map-legend strong {
+  color: #2563eb;
+}
+
+.map-container {
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  min-height: 360px;
+}
+
+.leaflet-map {
+  height: 360px;
+  width: 100%;
+}
+
 .panel-header {
   display: flex;
   justify-content: space-between;
